@@ -130,62 +130,24 @@ def transform_ending(motif_notes, key, scale, ticks_per_beat=480):
         current_time += note_duration
     return measure_data
 
-def strategy_a_simple_sequence(motif_notes, key, ticks_per_beat=480):
+
+def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480):
     """
-    生成戦略A: モチーフをシーケンス（反復進行）させて4小節のメロディーを生成する。
-    - 1小節目: モチーフ
-    - 2小節目: モチーフを2度上にシーケンス
-    - 3小節目: モチーフを5度上にシーケンス
-    - 4小節目: モチーフに戻り、主音で解決
-    """
-    if key not in SCALES:
-        raise ValueError(f"キー '{key}' は定義されていません。利用可能なキー: {list(SCALES.keys())}")
-
-    scale = SCALES[key]
-    tonic = scale[0]  # キーの主音
-    melody_data = []
-    current_time = 0
-    note_duration = ticks_per_beat  # 各音符を1拍（4分音符）とする
-
-    # --- 4小節のメロディーを構成 ---
-    # 1小節目: 元のモチーフ
-    for pitch in motif_notes:
-        melody_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
-        current_time += note_duration
-
-    # 2小節目: 2度上 (長2度 = 2半音) にシーケンス
-    for pitch in motif_notes:
-        transposed_pitch = pitch + 2
-        snapped_pitch = snap_to_scale(transposed_pitch, scale)
-        melody_data.append({'pitch': snapped_pitch, 'time': current_time, 'duration': note_duration})
-        current_time += note_duration
-
-    # 3小節目: 5度上 (完全5度 = 7半音) にシーケンス
-    for pitch in motif_notes:
-        transposed_pitch = pitch + 7
-        snapped_pitch = snap_to_scale(transposed_pitch, scale)
-        melody_data.append({'pitch': snapped_pitch, 'time': current_time, 'duration': note_duration})
-        current_time += note_duration
-
-    # 4小節目: 元のモチーフに戻り、最後を主音で解決させる
-    for i, pitch in enumerate(motif_notes):
-        final_pitch = pitch
-        if i == len(motif_notes) - 1:  # モチーフの最後の音の場合
-            final_pitch = snap_to_scale(tonic, [pitch]) # 元の音に近いオクターブの主音に補正
-        melody_data.append({'pitch': final_pitch, 'time': current_time, 'duration': note_duration})
-        current_time += note_duration
-
-    return melody_data
-
-def strategy_random_choice(motif_notes, key, ticks_per_beat=480):
-    """
-    生成戦略B: 変換操作をランダムに組み合わせて4小節のメロディーを生成する。
+    生成戦略B: 変換操作をランダムに組み合わせて指定された小節数のメロディーを生成する。
     - 1小節目: 提示 (そのまま)
-    - 2,3小節目: 展開 (ランダム)
-    - 4小節目: 解決 (主音で終わる)
+    - 中間: 展開 (ランダム)
+    - 最終小節: 解決 (主音で終わる)
+
+    Args:
+        motif_notes (list): モチーフとなるMIDIノート番号のリスト。
+        key (str): 使用するキー。
+        num_measures (int): 生成する合計小節数。
+        ticks_per_beat (int): 1拍あたりのティック数。
     """
     if key not in SCALES:
         raise ValueError(f"キー '{key}' は定義されていません。利用可能なキー: {list(SCALES.keys())}")
+    if num_measures < 2:
+        raise ValueError("生成する小節数は2以上である必要があります。")
 
     scale = SCALES[key]
 
@@ -196,13 +158,18 @@ def strategy_random_choice(motif_notes, key, ticks_per_beat=480):
         # 今後、ここに新しい変換操作を追加していきます
     ]
 
-    # 4小節の構成を定義
-    composition = [
-        transform_identity,                      # 1小節目: 提示
-        random.choice(development_transforms),   # 2小節目: 展開1
-        random.choice(development_transforms),   # 3小節目: 展開2
-        transform_ending,                        # 4小節目: 解決
-    ]
+    # 指定された小節数で構成を動的に定義
+    composition = []
+    # 1小節目: 提示
+    composition.append(transform_identity)
+
+    # 2小節目から (N-1)小節目: 展開
+    # num_measures - 2 は、最初と最後の小節を除いた展開部分の小節数
+    for _ in range(num_measures - 2):
+        composition.append(random.choice(development_transforms))
+
+    # 最終小節: 解決
+    composition.append(transform_ending)
 
     full_melody_data = []
     current_time = 0
@@ -230,18 +197,24 @@ if __name__ == "__main__":
     input_motif = [60, 62, 64]
     input_key = 'C_major'
     scale_notes = SCALES[input_key]
+    
+    # ★★★ 生成する小節数をここで設定 ★★★
+    number_of_measures = 8
 
     # --- 新しいランダム戦略の実行 ---
-    print("--- 戦略B (ランダム選択) の実行 ---")
+    print(f"--- 戦略B (ランダム選択) の実行 ({number_of_measures}小節) ---")
 
     # 使用する生成戦略を選択
     selected_strategy = strategy_random_choice
 
     # 選択した戦略でメロディーデータを生成
-    generated_melody = selected_strategy(input_motif, input_key)
+    generated_melody = selected_strategy(input_motif, input_key, num_measures=number_of_measures)
 
     # 生成されたメロディーデータをMIDIファイルに出力
+    output_folder='C:\\Users\\masuda\\Desktop\\DTM'
     output_file = 'strategy_random_output.mid'
-    create_midi_file(generated_melody, output_file)
+    output_path = f"{output_folder}\\{output_file}"
+    print(output_path)
+    create_midi_file(generated_melody, output_path)
 
     print(f"\nMIDIファイル '{output_file}' を生成しました。")
