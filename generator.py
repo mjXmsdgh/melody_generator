@@ -80,6 +80,37 @@ def snap_to_scale(pitch, scale_notes):
                 best_pitch = current_scale_note
     return best_pitch
 
+# --- 変換操作 (Transformations) ---
+# 各変換操作は、モチーフを受け取り、「1小節分」のメロディーデータを返すことを想定しています。
+# 返されるデータ内の 'time' は、その小節の先頭を0とした相対時間です。
+
+def transform_identity(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフをそのまま演奏する。
+    """
+    measure_data = []
+    current_time = 0
+    # ここでは、モチーフ内の各音符を1拍の長さと仮定します。
+    note_duration = ticks_per_beat
+    for pitch in motif_notes:
+        measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data
+
+def transform_retrograde(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフを逆行させる（音の順番を逆にする）。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+    # モチーフの音の並びを逆順にする
+    reversed_notes = motif_notes[::-1]
+    for pitch in reversed_notes:
+        measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data
+
 def strategy_a_simple_sequence(motif_notes, key, ticks_per_beat=480):
     """
     生成戦略A: モチーフをシーケンス（反復進行）させて4小節のメロディーを生成する。
@@ -134,18 +165,24 @@ if __name__ == "__main__":
     # モチーフ: ドレミ (C4, D4, E4)
     input_motif = [60, 62, 64]
     input_key = 'C_major'
+    scale_notes = SCALES[input_key]
 
-    # 2. 使用する生成戦略を選択
-    selected_strategy = strategy_a_simple_sequence
+    # --- (A) 既存の戦略の実行 (比較のため残しています) ---
+    print("--- 戦略Aの実行 ---")
+    strategy_a_melody = strategy_a_simple_sequence(input_motif, input_key)
+    create_midi_file(strategy_a_melody, 'strategy_a_output.mid')
+    print(f"MIDIファイル 'strategy_a_output.mid' を生成しました。\n")
 
-    print(f"戦略 '{selected_strategy.__name__}' を使用してメロディーを生成します...")
-    print(f"モチーフ: {input_motif}, キー: {input_key}")
+    # --- (B) 新しい変換操作のテスト実行 ---
+    # これらは1小節分のメロディーデータを生成します。
+    print("--- 新しい変換操作のテスト ---")
 
-    # 3. 選択した戦略でメロディーデータを生成
-    generated_melody = selected_strategy(input_motif, input_key)
+    # Identity (そのまま)
+    identity_melody = transform_identity(input_motif, input_key, scale_notes)
+    create_midi_file(identity_melody, 'transform_identity_output.mid')
+    print(f"-> MIDIファイル 'transform_identity_output.mid' を生成しました。 (モチーフ: ドレミ)")
 
-    # 4. 生成されたメロディーデータをMIDIファイルに出力
-    output_file = 'strategy_a_output.mid'
-    create_midi_file(generated_melody, output_file)
-
-    print(f"MIDIファイル '{output_file}' を生成しました。")
+    # Retrograde (逆行)
+    retrograde_melody = transform_retrograde(input_motif, input_key, scale_notes)
+    create_midi_file(retrograde_melody, 'transform_retrograde_output.mid')
+    print(f"-> MIDIファイル 'transform_retrograde_output.mid' を生成しました。 (モチーフ: ミレド)")
