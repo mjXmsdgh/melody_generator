@@ -1,4 +1,5 @@
 import mido
+import random
 
 def create_midi_file(melody_data, output_filename, ticks_per_beat=480):
     """
@@ -111,6 +112,24 @@ def transform_retrograde(motif_notes, key, scale, ticks_per_beat=480):
         current_time += note_duration
     return measure_data
 
+def transform_ending(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフを演奏し、最後を主音で解決させる。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+    tonic = scale[0]
+
+    for i, pitch in enumerate(motif_notes):
+        final_pitch = pitch
+        if i == len(motif_notes) - 1:  # モチーフの最後の音の場合
+            # 元の音に近いオクターブの主音に補正
+            final_pitch = snap_to_scale(tonic, [pitch])
+        measure_data.append({'pitch': final_pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data
+
 def strategy_a_simple_sequence(motif_notes, key, ticks_per_beat=480):
     """
     生成戦略A: モチーフをシーケンス（反復進行）させて4小節のメロディーを生成する。
@@ -158,6 +177,51 @@ def strategy_a_simple_sequence(motif_notes, key, ticks_per_beat=480):
 
     return melody_data
 
+def strategy_random_choice(motif_notes, key, ticks_per_beat=480):
+    """
+    生成戦略B: 変換操作をランダムに組み合わせて4小節のメロディーを生成する。
+    - 1小節目: 提示 (そのまま)
+    - 2,3小節目: 展開 (ランダム)
+    - 4小節目: 解決 (主音で終わる)
+    """
+    if key not in SCALES:
+        raise ValueError(f"キー '{key}' は定義されていません。利用可能なキー: {list(SCALES.keys())}")
+
+    scale = SCALES[key]
+
+    # 展開に利用する変換操作のリスト
+    development_transforms = [
+        transform_identity,
+        transform_retrograde,
+        # 今後、ここに新しい変換操作を追加していきます
+    ]
+
+    # 4小節の構成を定義
+    composition = [
+        transform_identity,                      # 1小節目: 提示
+        random.choice(development_transforms),   # 2小節目: 展開1
+        random.choice(development_transforms),   # 3小節目: 展開2
+        transform_ending,                        # 4小節目: 解決
+    ]
+
+    full_melody_data = []
+    current_time = 0
+    # 1小節の長さを、モチーフの音数 x 1拍のティック数 と仮定
+    ticks_per_measure = len(motif_notes) * ticks_per_beat
+
+    print("今回のメロディー構成:")
+    for i, transform_func in enumerate(composition):
+        print(f"  - {i+1}小節目: {transform_func.__name__}")
+        # 変換操作を呼び出して1小節分のメロディーを生成
+        measure_data = transform_func(motif_notes, key, scale, ticks_per_beat)
+
+        # 小節の開始時間に合わせて、各音符の時間を調整して追加
+        for note in measure_data:
+            note['time'] += current_time
+            full_melody_data.append(note)
+        current_time += ticks_per_measure
+
+    return full_melody_data
 
 # --- メインの実行ブロック ---
 if __name__ == "__main__":
@@ -167,22 +231,17 @@ if __name__ == "__main__":
     input_key = 'C_major'
     scale_notes = SCALES[input_key]
 
-    # --- (A) 既存の戦略の実行 (比較のため残しています) ---
-    print("--- 戦略Aの実行 ---")
-    strategy_a_melody = strategy_a_simple_sequence(input_motif, input_key)
-    create_midi_file(strategy_a_melody, 'strategy_a_output.mid')
-    print(f"MIDIファイル 'strategy_a_output.mid' を生成しました。\n")
+    # --- 新しいランダム戦略の実行 ---
+    print("--- 戦略B (ランダム選択) の実行 ---")
 
-    # --- (B) 新しい変換操作のテスト実行 ---
-    # これらは1小節分のメロディーデータを生成します。
-    print("--- 新しい変換操作のテスト ---")
+    # 使用する生成戦略を選択
+    selected_strategy = strategy_random_choice
 
-    # Identity (そのまま)
-    identity_melody = transform_identity(input_motif, input_key, scale_notes)
-    create_midi_file(identity_melody, 'transform_identity_output.mid')
-    print(f"-> MIDIファイル 'transform_identity_output.mid' を生成しました。 (モチーフ: ドレミ)")
+    # 選択した戦略でメロディーデータを生成
+    generated_melody = selected_strategy(input_motif, input_key)
 
-    # Retrograde (逆行)
-    retrograde_melody = transform_retrograde(input_motif, input_key, scale_notes)
-    create_midi_file(retrograde_melody, 'transform_retrograde_output.mid')
-    print(f"-> MIDIファイル 'transform_retrograde_output.mid' を生成しました。 (モチーフ: ミレド)")
+    # 生成されたメロディーデータをMIDIファイルに出力
+    output_file = 'strategy_random_output.mid'
+    create_midi_file(generated_melody, output_file)
+
+    print(f"\nMIDIファイル '{output_file}' を生成しました。")
