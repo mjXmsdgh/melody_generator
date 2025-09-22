@@ -9,7 +9,7 @@ def main():
     メイン処理
     """
     # 1. 生成に使用するパラメータを設定
-    input_motif = [60, 62, 64]  # モチーフ: ドレミ (C4, D4, E4)
+    input_motif = [64, 62, 60]  # モチーフ: ドレミ (C4, D4, E4)
     input_key = 'C_major'
     number_of_measures = 8      # 生成する小節数
 

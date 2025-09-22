@@ -3,7 +3,10 @@
 """
 import random
 from music_theory import SCALES
-from transformations import transform_identity, transform_retrograde, transform_ending
+from transformations import (
+    transform_identity, transform_retrograde, transform_ending,
+    transform_rhythm_staccato, transform_rhythm_double_time
+)
 
 def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480):
     """
@@ -29,7 +32,9 @@ def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480)
     development_transforms = [
         transform_identity,
         transform_retrograde,
-        # 今後、ここに新しい変換操作を追加していきます
+        # リズム系の変換操作を追加
+        transform_rhythm_staccato,
+        transform_rhythm_double_time,
     ]
 
     # 指定された小節数で構成を動的に定義

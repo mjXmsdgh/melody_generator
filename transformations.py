@@ -50,3 +50,35 @@ def transform_ending(motif_notes, key, scale, ticks_per_beat=480):
         measure_data.append({'pitch': final_pitch, 'time': current_time, 'duration': note_duration})
         current_time += note_duration
     return measure_data
+
+def transform_rhythm_staccato(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を「8分音符 + 8分休符」のスタッカートにする。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat // 2  # 8分音符の長さ
+
+    for pitch in motif_notes:
+        # 8分音符を追加
+        measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
+        # 1拍分の時間を進める (8分音符 + 8分休符)
+        current_time += ticks_per_beat
+    return measure_data
+
+def transform_rhythm_double_time(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を半分の長さの音符2つに分割する（倍速化）。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat // 2  # 8分音符の長さ
+
+    for pitch in motif_notes:
+        # 1つ目の8分音符
+        measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+        # 2つ目の8分音符
+        measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data

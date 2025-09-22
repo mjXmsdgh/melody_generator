@@ -39,9 +39,9 @@ def create_midi_file(melody_data, output_filename, ticks_per_beat=480):
     # 3. 絶対時間を「前のイベントからの経過時間 (デルタタイム)」に変換してトラックに追加
     last_event_time = 0
     for event in midi_events:
-        delta_time = event['time'] - last_event_time
+        delta_time = int(event['time'] - last_event_time)
         track.append(mido.Message(
-            event['type'], note=event['pitch'], velocity=event['velocity'], time=delta_time
+            event['type'], note=event['pitch'], velocity=event['velocity'], time=int(delta_time)
         ))
         last_event_time = event['time']
 
