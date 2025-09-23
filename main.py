@@ -21,7 +21,12 @@ def main():
         num_measures=number_of_measures
     )
 
-    # 3. 生成されたメロディーをMIDIファイルに出力
+    # 3. 生成されたメロディーデータを確認
+    print("\n--- 生成されたメロディーデータ (pitch, time, duration) ---")
+    for note in generated_melody:
+        print(f"  {note}")
+
+    # 4. 生成されたメロディーをMIDIファイルに出力
     output_path = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"
     create_midi_file(generated_melody, output_path)
     print(f"\nMIDIファイル '{output_path}' を生成しました。")
