@@ -122,3 +122,33 @@ def transform_syncopation_pull(motif_notes, key, scale, ticks_per_beat=480):
         # 時間の進行は本来の1拍ごと
         current_time += ticks_per_beat
     return measure_data
+
+def transform_transpose_up(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフをスケールに沿って2音上に移高する。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+
+    for pitch in motif_notes:
+        # 元の音からだいたい全音(2)分高い音をターゲットにし、スケールに最も近い音に補正
+        transposed_pitch = snap_to_scale(pitch + 2, scale)
+        measure_data.append({'pitch': transposed_pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data
+
+def transform_transpose_down(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフをスケールに沿って2音下に移高する。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+
+    for pitch in motif_notes:
+        # 元の音からだいたい全音(2)分低い音をターゲットにし、スケールに最も近い音に補正
+        transposed_pitch = snap_to_scale(pitch - 2, scale)
+        measure_data.append({'pitch': transposed_pitch, 'time': current_time, 'duration': note_duration})
+        current_time += note_duration
+    return measure_data

@@ -5,8 +5,8 @@ import random
 from music_theory import SCALES
 from transformations import (
     transform_identity, transform_retrograde, transform_ending,
-    transform_rhythm_staccato, transform_rhythm_double_time,
-    transform_syncopation_push, transform_syncopation_pull
+    transform_rhythm_staccato, transform_rhythm_double_time, transform_syncopation_push,
+    transform_syncopation_pull, transform_transpose_up, transform_transpose_down
 )
 
 def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480):
@@ -39,6 +39,9 @@ def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480)
         # シンコペーション系の変換操作を追加
         transform_syncopation_push,
         transform_syncopation_pull,
+        # 移高系の変換操作を追加
+        transform_transpose_up,
+        transform_transpose_down,
     ]
 
     # 指定された小節数で構成を動的に定義
