@@ -82,3 +82,43 @@ def transform_rhythm_double_time(motif_notes, key, scale, ticks_per_beat=480):
         measure_data.append({'pitch': pitch, 'time': current_time, 'duration': note_duration})
         current_time += note_duration
     return measure_data
+
+def transform_syncopation_push(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を8分音符分「前」にずらす（食い気味のシンコペーション）。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+    push_amount = ticks_per_beat // 2  # 8分音符分ずらす
+
+    for pitch in motif_notes:
+        # 8分音符分、前にずらす。ただし小節の頭(time=0)より前には行かない。
+        start_time = max(0, current_time - push_amount)
+        measure_data.append({'pitch': pitch, 'time': start_time, 'duration': note_duration})
+        # 時間の進行は本来の1拍ごと
+        current_time += ticks_per_beat
+    return measure_data
+
+def transform_syncopation_pull(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を8分音符分「後」にずらす（もたらせるシンコペーション）。
+    """
+    measure_data = []
+    current_time = 0
+    note_duration = ticks_per_beat
+    pull_amount = ticks_per_beat // 2  # 8分音符分ずらす
+    measure_duration = len(motif_notes) * ticks_per_beat # この小節の想定される長さ
+
+    for pitch in motif_notes:
+        start_time = current_time + pull_amount
+        # 小節の長さを超えないように音符の長さを調整
+        adjusted_duration = note_duration
+        if start_time + adjusted_duration > measure_duration:
+            adjusted_duration = max(0, measure_duration - start_time)
+
+        if adjusted_duration > 0:
+            measure_data.append({'pitch': pitch, 'time': start_time, 'duration': adjusted_duration})
+        # 時間の進行は本来の1拍ごと
+        current_time += ticks_per_beat
+    return measure_data
