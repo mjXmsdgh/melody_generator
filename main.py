@@ -1,4 +1,4 @@
-from strategies import strategy_random_choice
+from strategies import strategy_chord_progression
 from midi_utils import create_midi_file
 
 # このファイルがプログラムの実行起点となります。
@@ -11,16 +11,25 @@ def main():
     # 1. 生成に使用するパラメータを設定
     # モチーフ：[(MIDIノート番号, 継続時間(ticks)), ...]
     # 例：ド（C4、四分音符）、レ（D4、八分音符）、ミ（E4、四分音符）
-    input_motif = [(64, 1920//4), (62, 1920//4), (60, 1920//4),(62,1920//4)]
+    ticks_per_beat = 480
+    input_motif = [(64, ticks_per_beat), (62, ticks_per_beat), (60, ticks_per_beat),(62, ticks_per_beat)]
 
     input_key = 'C_major'
     number_of_measures = 8      # 生成する小節数
 
+    # 使用するコード進行をリストで定義 (8小節分)
+    # ポップスでよく使われる「カノン進行」を少しアレンジしたものです
+    input_chord_progression = [
+        'C', 'G', 'Am', 'Em',
+        'F', 'C', 'F',  'G'
+    ]
+
     # 2. メロディー生成を実行
     print(f"--- メロディー生成を開始します ({number_of_measures}小節) ---")
-    generated_melody = strategy_random_choice(
+    generated_melody = strategy_chord_progression(
         motif_notes=input_motif,
         key=input_key,
+        chord_progression=input_chord_progression,
         num_measures=number_of_measures
     )
 

@@ -2,7 +2,7 @@
 変換操作を組み合わせてメロディー全体の構成を作る「生成戦略」のカタログ。
 """
 import random
-from music_theory import SCALES
+from music_theory import SCALES, CHORDS, snap_to_chord
 from transformations import (
     transform_identity, transform_retrograde, transform_ending,
     transform_rhythm_staccato, transform_rhythm_double_time, transform_syncopation_push,
@@ -72,6 +72,68 @@ def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480)
         measure_data = transform_func(motif_notes, key, scale, ticks_per_beat)
 
         # 小節の開始時間に合わせて、各音符の時間を調整して追加
+        for note in measure_data:
+            note['time'] += current_time
+            full_melody_data.append(note)
+        current_time += ticks_per_measure
+
+    return full_melody_data
+
+def strategy_chord_progression(motif_notes, key, chord_progression, num_measures=8, ticks_per_beat=480):
+    """
+    生成戦略: 指定されたコード進行に沿ってメロディーを生成する。
+    各小節のメロディーを、対応するコードの構成音に近づける。
+
+    Args:
+        motif_notes (list): モチーフとなるMIDIノート番号のリスト。
+        key (str): 使用するキー。
+        chord_progression (list): 小節ごとのコード名(str)のリスト。例: ['C', 'G', 'Am', 'F']
+        num_measures (int): 生成する合計小節数。
+        ticks_per_beat (int): 1拍あたりのティック数。
+    """
+    if key not in SCALES:
+        raise ValueError(f"キー '{key}' は定義されていません。")
+    if len(chord_progression) < num_measures:
+        raise ValueError("コード進行の長さが、生成する小節数より短いです。")
+
+    scale = SCALES[key]
+
+    # 展開に利用する変換操作のリスト
+    development_transforms = [
+        transform_identity,
+        transform_retrograde,
+        transform_transpose_up,
+        transform_transpose_down,
+        transform_rhythm_staccato,
+    ]
+
+    # 構成を決定 (ここでは単純にランダムに選ぶが、AABA形式なども可能)
+    composition = []
+    for i in range(num_measures):
+        if i == num_measures - 1:
+            composition.append(transform_ending)
+        else:
+            composition.append(random.choice(development_transforms))
+
+    full_melody_data = []
+    current_time = 0
+    ticks_per_measure = sum(duration for _, duration in motif_notes)
+
+    print("今回のメロディー構成 (コード進行適用):")
+    for i, transform_func in enumerate(composition):
+        # 1. まず、選択された変換操作を適用して1小節分のメロディーを生成
+        measure_data = transform_func(motif_notes, key, scale, ticks_per_beat)
+
+        # 2. 次に、その小節のコードを取得し、メロディーの各音をコードトーンにスナップさせる
+        current_chord_name = chord_progression[i]
+        chord_notes = CHORDS.get(current_chord_name)
+        print(f"  - {i+1}小節目: {transform_func.__name__} (コード: {current_chord_name})")
+
+        if chord_notes: # コードが定義されていればスナップ処理を行う
+            for note in measure_data:
+                note['pitch'] = snap_to_chord(note['pitch'], chord_notes)
+
+        # 3. 時間を調整して全体のメロディーに追加
         for note in measure_data:
             note['time'] += current_time
             full_melody_data.append(note)
