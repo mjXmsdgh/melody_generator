@@ -13,6 +13,7 @@ def main():
     # 例：ド（C4、四分音符）、レ（D4、八分音符）、ミ（E4、四分音符）
     ticks_per_beat = 480
     input_motif = [(64, ticks_per_beat), (62, ticks_per_beat), (60, ticks_per_beat),(62, ticks_per_beat)]
+    beats_per_measure = 4
 
     input_key = 'C_major'
     number_of_measures = 8      # 生成する小節数
@@ -23,6 +24,8 @@ def main():
         'C', 'G', 'Am', 'Em',
         'F', 'C', 'F',  'G'
     ]
+
+    play_chords = True  # 伴奏コードを生成するかどうか (True: する, False: しない)
 
     # 2. メロディー生成を実行
     print(f"--- メロディー生成を開始します ({number_of_measures}小節) ---")
@@ -40,7 +43,12 @@ def main():
 
     # 4. 生成されたメロディーをMIDIファイルに出力
     output_path = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"
-    create_midi_file(generated_melody, output_path)
+    create_midi_file(
+        melody_data=generated_melody,
+        output_filename=output_path,
+        chord_progression=input_chord_progression if play_chords else None,
+        beats_per_measure=beats_per_measure
+    )
     print(f"\nMIDIファイル '{output_path}' を生成しました。")
 
 
