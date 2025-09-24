@@ -47,7 +47,7 @@ def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480)
     # 指定された小節数で構成を動的に定義
     composition = []
     # 1小節目: 提示
-    composition.append(transform_identity)
+    composition.append(transform_identity)  # identity変換を適用
 
     # 2小節目から (N-1)小節目: 展開
     # num_measures - 2 は、最初と最後の小節を除いた展開部分の小節数
@@ -59,13 +59,16 @@ def strategy_random_choice(motif_notes, key, num_measures=4, ticks_per_beat=480)
 
     full_melody_data = []
     current_time = 0
-    # 1小節の長さを、モチーフの音数 x 1拍のティック数 と仮定
-    ticks_per_measure = len(motif_notes) * ticks_per_beat
+
+    # 1小節の長さを計算
+    ticks_per_measure = sum(duration for _, duration in motif_notes)
+
 
     print("今回のメロディー構成:")
     for i, transform_func in enumerate(composition):
         print(f"  - {i+1}小節目: {transform_func.__name__}")
         # 変換操作を呼び出して1小節分のメロディーを生成
+        # measure_data = transform_func(motif_notes, key, scale, ticks_per_beat)
         measure_data = transform_func(motif_notes, key, scale, ticks_per_beat)
 
         # 小節の開始時間に合わせて、各音符の時間を調整して追加
