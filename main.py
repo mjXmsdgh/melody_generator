@@ -1,5 +1,7 @@
 from strategies import strategy_chord_progression
 from midi_utils import create_midi_file
+from transformations import add_passing_notes
+from music_theory import SCALES
 
 # このファイルがプログラムの実行起点となります。
 # 今後、他のファイルは直接実行せず、この main.py を実行してください。
@@ -25,7 +27,8 @@ def main():
         'F', 'C', 'F',  'G'
     ]
 
-    play_chords = True  # 伴奏コードを生成するかどうか (True: する, False: しない)
+    play_chords = False  # 伴奏コードを生成するかどうか (True: する, False: しない)
+    use_passing_notes = True # 経過音を追加するかどうか
 
     # 2. メロディー生成を実行
     print(f"--- メロディー生成を開始します ({number_of_measures}小節) ---")
@@ -36,15 +39,26 @@ def main():
         num_measures=number_of_measures
     )
 
+    # (オプション) 経過音を追加する後処理
+    if use_passing_notes:
+        print("\n--- 経過音を追加します ---")
+        final_melody = add_passing_notes(
+            melody_data=generated_melody,
+            scale=SCALES[input_key],
+            ticks_per_beat=ticks_per_beat
+        )
+    else:
+        final_melody = generated_melody
+
     # 3. 生成されたメロディーデータを確認
     print("\n--- 生成されたメロディーデータ (pitch, time, duration) ---")
-    for note in generated_melody:
+    for note in final_melody:
         print(f"  {note}")
 
     # 4. 生成されたメロディーをMIDIファイルに出力
     output_path = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"
     create_midi_file(
-        melody_data=generated_melody,
+        melody_data=final_melody,
         output_filename=output_path,
         chord_progression=input_chord_progression if play_chords else None,
         beats_per_measure=beats_per_measure

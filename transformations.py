@@ -29,6 +29,7 @@ def transform_retrograde(motif_notes, key, scale, ticks_per_beat=480):
     for note in reversed_notes:
         pitch, duration = note
         measure_data.append({'pitch': pitch, 'time': current_time, 'duration': duration})
+        current_time += duration
     return measure_data
 
 def transform_ending(motif_notes, key, scale, ticks_per_beat=480):
@@ -150,3 +151,47 @@ def transform_transpose_down(motif_notes, key, scale, ticks_per_beat=480):
         measure_data.append({'pitch': transposed_pitch, 'time': current_time, 'duration': duration})
         current_time += duration
     return measure_data
+
+def add_passing_notes(melody_data, scale, ticks_per_beat=480):
+    """
+    後処理: 生成されたメロディーの音符間に経過音を挿入する。
+    音符間に3度以上の跳躍があり、かつ十分な休符がある場合に、間のスケール音を16分音符で埋める。
+
+    Args:
+        melody_data (list): メロディーデータのリスト。
+        scale (list): 使用するスケールのMIDIノート番号リスト。
+        ticks_per_beat (int): 1拍あたりのティック数。
+
+    Returns:
+        list: 経過音が追加された新しいメロディーデータのリスト。
+    """
+    # 時間順にソートしておく
+    sorted_melody = sorted(melody_data, key=lambda x: x['time'])
+    new_melody = []
+    passing_note_duration = ticks_per_beat // 4  # 16分音符
+
+    for i in range(len(sorted_melody)):
+        current_note = sorted_melody[i]
+        new_melody.append(current_note)
+
+        # 最後の音符でなければ、次の音符との間を確認
+        if i < len(sorted_melody) - 1:
+            next_note = sorted_melody[i+1]
+
+            # 2つの音符間の時間的な隙間（休符）を計算
+            gap = next_note['time'] - (current_note['time'] + current_note['duration'])
+
+            # 音程が3度以上離れていて(MIDIノート番号で3以上)、16分音符以上の隙間があるか
+            if abs(next_note['pitch'] - current_note['pitch']) >= 3 and gap >= passing_note_duration:
+                # 間の音を探す
+                step = 1 if next_note['pitch'] > current_note['pitch'] else -1
+                passing_pitch_candidate = current_note['pitch'] + step
+                # スケールに沿った音に補正
+                passing_pitch = snap_to_scale(passing_pitch_candidate, scale)
+
+                # 経過音を追加
+                passing_note_time = current_note['time'] + current_note['duration']
+                new_melody.append({'pitch': passing_pitch, 'time': passing_note_time, 'duration': passing_note_duration})
+
+    # 最終的に時間でソートして返す
+    return sorted(new_melody, key=lambda x: x['time'])
