@@ -2,68 +2,48 @@ from strategies import strategy_chord_progression
 from midi_utils import create_midi_file
 from transformations import add_passing_notes
 from music_theory import SCALES
+import config
 
 # このファイルがプログラムの実行起点となります。
 # 今後、他のファイルは直接実行せず、この main.py を実行してください。
 
 def main():
     """
-    メイン処理
+    設定ファイルに基づいてメロディーを生成し、MIDIファイルとして出力します。
     """
-    # 1. 生成に使用するパラメータを設定
-    # モチーフ：[(MIDIノート番号, 継続時間(ticks)), ...]
-    # 例：ド（C4、四分音符）、レ（D4、八分音符）、ミ（E4、四分音符）
-    ticks_per_beat = 480
-    input_motif = [(64, ticks_per_beat), (62, ticks_per_beat), (60, ticks_per_beat),(62, ticks_per_beat)]
-    beats_per_measure = 4
-
-    input_key = 'C_major'
-    number_of_measures = 8      # 生成する小節数
-
-    # 使用するコード進行をリストで定義 (8小節分)
-    # ポップスでよく使われる「カノン進行」を少しアレンジしたものです
-    input_chord_progression = [
-        'C', 'G', 'Am', 'Em',
-        'F', 'C', 'F',  'G'
-    ]
-
-    play_chords = False  # 伴奏コードを生成するかどうか (True: する, False: しない)
-    use_passing_notes = True # 経過音を追加するかどうか
-
-    # 2. メロディー生成を実行
-    print(f"--- メロディー生成を開始します ({number_of_measures}小節) ---")
+    # 1. メロディー生成を実行
+    print(f"--- メロディー生成を開始します ({config.NUMBER_OF_MEASURES}小節) ---")
     generated_melody = strategy_chord_progression(
-        motif_notes=input_motif,
-        key=input_key,
-        chord_progression=input_chord_progression,
-        num_measures=number_of_measures
+        motif_notes=config.INPUT_MOTIF,
+        key=config.INPUT_KEY,
+        chord_progression=config.INPUT_CHORD_PROGRESSION,
+        num_measures=config.NUMBER_OF_MEASURES
     )
 
-    # (オプション) 経過音を追加する後処理
-    if use_passing_notes:
+    # 2. (オプション) 経過音を追加する後処理
+    if config.USE_PASSING_NOTES:
         print("\n--- 経過音を追加します ---")
         final_melody = add_passing_notes(
             melody_data=generated_melody,
-            scale=SCALES[input_key],
-            ticks_per_beat=ticks_per_beat
+            scale=SCALES[config.INPUT_KEY],
+            ticks_per_beat=config.TICKS_PER_BEAT
         )
     else:
         final_melody = generated_melody
 
-    # 3. 生成されたメロディーデータを確認
+    # 3. 生成されたメロディーデータをコンソールに表示
     print("\n--- 生成されたメロディーデータ (pitch, time, duration) ---")
     for note in final_melody:
         print(f"  {note}")
 
     # 4. 生成されたメロディーをMIDIファイルに出力
-    output_path = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"
     create_midi_file(
         melody_data=final_melody,
-        output_filename=output_path,
-        chord_progression=input_chord_progression if play_chords else None,
-        beats_per_measure=beats_per_measure
+        output_filename=config.OUTPUT_PATH,
+        chord_progression=config.INPUT_CHORD_PROGRESSION if config.PLAY_CHORDS else None,
+        beats_per_measure=config.BEATS_PER_MEASURE
     )
-    print(f"\nMIDIファイル '{output_path}' を生成しました。")
+    print(f"\nMIDIファイル '{config.OUTPUT_PATH}' を生成しました。")
 
 
 if __name__ == "__main__":
