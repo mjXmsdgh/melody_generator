@@ -152,6 +152,47 @@ def transform_transpose_down(motif_notes, key, scale, ticks_per_beat=480):
         current_time += duration
     return measure_data
 
+def transform_rhythm_dotted(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を「付点8分音符 + 16分音符」のリズムパターンに変換する。
+    元の音符1つが、同じピッチの2つの音符（タータ）に置き換わります。
+    """
+    measure_data = []
+    current_time = 0
+    dotted_eighth_duration = int(ticks_per_beat * 0.75)  # 付点8分音符
+    sixteenth_duration = int(ticks_per_beat * 0.25)      # 16分音符
+
+    for pitch, duration in motif_notes:
+        # 元の音符の長さが1拍以上の場合に適用
+        if duration >= ticks_per_beat:
+            num_beats = duration // ticks_per_beat
+            for _ in range(num_beats):
+                measure_data.append({'pitch': pitch, 'time': current_time, 'duration': dotted_eighth_duration})
+                current_time += dotted_eighth_duration
+                measure_data.append({'pitch': pitch, 'time': current_time, 'duration': sixteenth_duration})
+                current_time += sixteenth_duration
+        else: # 1拍未満の音符はそのまま
+            measure_data.append({'pitch': pitch, 'time': current_time, 'duration': duration})
+            current_time += duration
+    return measure_data
+
+def transform_rhythm_triplet(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: 各音符を8分音符の3連符に変換する。
+    元の音符1つが、同じピッチの3つの短い音符（タタタ）に置き換わります。
+    """
+    measure_data = []
+    current_time = 0
+    triplet_duration = ticks_per_beat // 3 # 1拍を3分割した長さ
+
+    for pitch, duration in motif_notes:
+        num_beats = duration // ticks_per_beat
+        for _ in range(num_beats):
+            for _ in range(3):
+                measure_data.append({'pitch': pitch, 'time': current_time, 'duration': triplet_duration})
+                current_time += triplet_duration
+    return measure_data
+
 def add_passing_notes(melody_data, scale, ticks_per_beat=480):
     """
     後処理: 生成されたメロディーの音符間に経過音を挿入する。
