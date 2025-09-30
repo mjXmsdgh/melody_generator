@@ -5,7 +5,7 @@ import random
 from music_theory import SCALES, CHORDS, snap_to_chord
 from transformations import (
     transform_identity, transform_retrograde, transform_ending, transform_rhythm_dotted,
-    transform_rhythm_triplet,
+    transform_rhythm_triplet, transform_slight_variation,
     transform_rhythm_staccato, transform_rhythm_double_time, transform_syncopation_push,
     transform_syncopation_pull, transform_transpose_up, transform_transpose_down
 )
@@ -103,22 +103,33 @@ def strategy_chord_progression(motif_notes, key, chord_progression, num_measures
 
     # 展開に利用する変換操作のリスト
     development_transforms = [
-        transform_identity,
-        transform_retrograde,
+        # Bセクションで使う、Aとは対照的な変換
         transform_transpose_up,
         transform_transpose_down,
         transform_rhythm_staccato,
         transform_rhythm_dotted,
         transform_rhythm_triplet,
     ]
+    
+    # 構成をAABA形式で決定 (8小節を想定: A(2) - A(2) - B(2) - A(2))
+    if num_measures != 8:
+        # 今は8小節のAABA形式に特化させる
+        raise ValueError(f"AABA形式は現在8小節でのみサポートされています。num_measuresを8に設定してください。")
 
-    # 構成を決定 (ここでは単純にランダムに選ぶが、AABA形式なども可能)
+    # 構成を AA'BA'' 形式で決定
     composition = []
-    for i in range(num_measures):
-        if i == num_measures - 1:
-            composition.append(transform_ending)
-        else:
-            composition.append(random.choice(development_transforms))
+    # Aセクション (1-2小節): a - a'
+    composition.append(transform_identity)         # a
+    composition.append(transform_slight_variation) # a'
+    # A'セクション (3-4小節): a - a'' (a'とは別のバリエーション)
+    composition.append(transform_identity)         # a
+    composition.append(transform_slight_variation) # a''
+    # Bセクション (5-6小節) - 展開
+    composition.append(random.choice(development_transforms))
+    composition.append(random.choice(development_transforms))
+    # A''セクション (7-8小節) - 再現と解決
+    composition.append(transform_identity)         # a
+    composition.append(transform_ending) # 最後の小節は解決形
 
     full_melody_data = []
     current_time = 0

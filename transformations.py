@@ -2,6 +2,7 @@
 メロディーを1小節単位で加工する「変換操作」のカタログ。
 """
 from music_theory import snap_to_scale
+import random
 
 # 各変換操作は、モチーフを受け取り、「1小節分」のメロディーデータを返すことを想定しています。
 # 返されるデータ内の 'time' は、その小節の先頭を0とした相対時間です。
@@ -178,19 +179,31 @@ def transform_rhythm_dotted(motif_notes, key, scale, ticks_per_beat=480):
 
 def transform_rhythm_triplet(motif_notes, key, scale, ticks_per_beat=480):
     """
-    変換操作: 各音符を8分音符の3連符に変換する。
-    元の音符1つが、同じピッチの3つの短い音符（タタタ）に置き換わります。
+    変換操作: モチーフ内の長い音符(1拍以上)をランダムに1つ選び、8分音符の3連符に変換する。
     """
     measure_data = []
     current_time = 0
     triplet_duration = ticks_per_beat // 3 # 1拍を3分割した長さ
 
-    for pitch, duration in motif_notes:
-        num_beats = duration // ticks_per_beat
-        for _ in range(num_beats):
-            for _ in range(3):
-                measure_data.append({'pitch': pitch, 'time': current_time, 'duration': triplet_duration})
-                current_time += triplet_duration
+    # 1. 1拍以上の長い音符のインデックスをリストアップ
+    long_note_indices = [i for i, (pitch, duration) in enumerate(motif_notes) if duration >= ticks_per_beat]
+
+    # 2. 変換対象の音符をランダムに1つ選ぶ
+    note_to_transform_index = random.choice(long_note_indices) if long_note_indices else -1
+
+    # 3. モチーフを処理
+    for i, (pitch, duration) in enumerate(motif_notes):
+        if i == note_to_transform_index:
+            # 選ばれた音符を3連符に変換
+            num_beats = duration // ticks_per_beat
+            for _ in range(num_beats):
+                for _ in range(3):
+                    measure_data.append({'pitch': pitch, 'time': current_time, 'duration': triplet_duration})
+                    current_time += triplet_duration
+        else:
+            # それ以外の音符はそのまま追加
+            measure_data.append({'pitch': pitch, 'time': current_time, 'duration': duration})
+            current_time += duration
     return measure_data
 
 def add_passing_notes(melody_data, scale, ticks_per_beat=480):
@@ -237,3 +250,25 @@ def add_passing_notes(melody_data, scale, ticks_per_beat=480):
         new_melody.append(current_note)
 
     return new_melody
+
+def transform_slight_variation(motif_notes, key, scale, ticks_per_beat=480):
+    """
+    変換操作: モチーフの最後の音をスケールに沿って1音上または下にずらす。
+    Aセクション内のマイナーチェンジ(a -> a')を表現するために使用する。
+    """
+    measure_data = []
+    current_time = 0
+
+    if not motif_notes:
+        return []
+
+    for i, note in enumerate(motif_notes):
+        pitch, duration = note
+        final_pitch = pitch
+        if i == len(motif_notes) - 1:  # モチーフの最後の音の場合
+            # スケールに沿って1音上か下にランダムでずらす
+            direction = random.choice([-1, 1])
+            final_pitch = snap_to_scale(pitch + direction, scale)
+        measure_data.append({'pitch': final_pitch, 'time': current_time, 'duration': duration})
+        current_time += duration
+    return measure_data
