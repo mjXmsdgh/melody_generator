@@ -36,8 +36,5 @@ INPUT_CHORD_PROGRESSION = [
 # 伴奏コードをMIDIファイルに含めるか
 PLAY_CHORDS = True
 
-# 経過音を追加するか
-USE_PASSING_NOTES = True
-
 # --- 出力設定 ---
 OUTPUT_PATH = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"

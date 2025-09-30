@@ -206,50 +206,45 @@ def transform_rhythm_triplet(motif_notes, key, scale, ticks_per_beat=480):
             current_time += duration
     return measure_data
 
-def add_passing_notes(melody_data, scale, ticks_per_beat=480):
+def transform_add_passing_notes(motif_notes, key, scale, ticks_per_beat=480):
     """
-    後処理: 生成されたメロディーの音符間に経過音を挿入する。
+    変換操作: モチーフ内の音符間に経過音を挿入する。
     音符間に3度以上の跳躍があり、かつ十分な休符がある場合に、間のスケール音を16分音符で埋める。
-
-    Args:
-        melody_data (list): メロディーデータのリスト。
-        scale (list): 使用するスケールのMIDIノート番号リスト。
-        ticks_per_beat (int): 1拍あたりのティック数。
-
-    Returns:
-        list: 経過音が追加された新しいメロディーデータのリスト。
     """
-    if not melody_data:
+    if not motif_notes:
         return []
 
-    # 時間順にソートしておくことが前提
-    sorted_melody = sorted(melody_data, key=lambda x: x['time'])
-    new_melody = [sorted_melody[0]]  # 最初の音符は必ず追加
+    # まず、モチーフを基本的なメロディーデータに変換
+    base_measure_data = []
+    current_time = 0
+    for pitch, duration in motif_notes:
+        base_measure_data.append({'pitch': pitch, 'time': current_time, 'duration': duration})
+        current_time += duration
+
+    # 経過音を追加するロジック
+    new_measure_data = [base_measure_data[0]] # 最初の音符は必ず追加
     passing_note_duration = ticks_per_beat // 4  # 16分音符
 
-    # 2番目以降の音符を処理し、前の音符との間を評価する
-    for i in range(1, len(sorted_melody)):
-        prev_note = new_melody[-1] # 処理済みの最後の音符
-        current_note = sorted_melody[i]
+    for i in range(1, len(base_measure_data)):
+        # 処理済みの最後の音符と、現在の音符を取得
+        prev_note = new_measure_data[-1]
+        current_note = base_measure_data[i]
 
         # 2つの音符間の時間的な隙間（休符）を計算
         gap = current_note['time'] - (prev_note['time'] + prev_note['duration'])
 
         # 音程が3度以上離れていて(MIDIノート番号で3以上)、16分音符以上の隙間があるか
         if abs(current_note['pitch'] - prev_note['pitch']) >= 3 and gap >= passing_note_duration:
-            # 間の音を探す
             step = 1 if current_note['pitch'] > prev_note['pitch'] else -1
             passing_pitch_candidate = prev_note['pitch'] + step
-            # スケールに沿った音に補正
             passing_pitch = snap_to_scale(passing_pitch_candidate, scale)
 
-            # 経過音を追加
             passing_note_time = prev_note['time'] + prev_note['duration']
-            new_melody.append({'pitch': passing_pitch, 'time': passing_note_time, 'duration': passing_note_duration})
+            new_measure_data.append({'pitch': passing_pitch, 'time': passing_note_time, 'duration': passing_note_duration})
 
-        new_melody.append(current_note)
+        new_measure_data.append(current_note)
 
-    return new_melody
+    return new_measure_data
 
 def transform_slight_variation(motif_notes, key, scale, ticks_per_beat=480):
     """
