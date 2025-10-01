@@ -182,33 +182,35 @@ def transform_rhythm_triplet(measure_data, key, scale, ticks_per_beat=480):
 def transform_add_passing_notes(measure_data, key, scale, ticks_per_beat=480):
     """
     変換操作: モチーフ内の音符間に経過音を挿入する。
-    音符間に3度以上の跳躍があり、かつ十分な休符がある場合に、間のスケール音を16分音符で埋める。
+    音符間に3度以上の跳躍があり、かつ元の音符が4分音符以上の場合に、間のスケール音を8分音符で埋める。
     """
     if not measure_data:
         return []
 
-    # 経過音を追加するロジック
-    new_measure_data = [measure_data[0].copy()] # 最初の音符は必ず追加
-    passing_note_duration = ticks_per_beat // 4  # 16分音符
+    new_measure_data = []
+    passing_note_duration = ticks_per_beat // 2  # 8分音符
+    min_duration_for_passing_note = ticks_per_beat # 4分音符以上の長さを持つ音符を対象とする
 
-    for i in range(1, len(measure_data)):
-        # 処理済みの最後の音符と、現在の音符を取得
-        prev_note = new_measure_data[-1]
-        current_note = measure_data[i]
+    for i in range(len(measure_data)):
+        current_note = measure_data[i].copy()
+        new_measure_data.append(current_note)
 
-        # 2つの音符間の時間的な隙間（休符）を計算
-        gap = current_note['time'] - (prev_note['time'] + prev_note['duration'])
+        # 次の音符があるかチェック
+        if i + 1 < len(measure_data):
+            next_note = measure_data[i+1]
 
-        # 音程が3度以上離れていて(MIDIノート番号で3以上)、16分音符以上の隙間があるか
-        if abs(current_note['pitch'] - prev_note['pitch']) >= 3 and gap >= passing_note_duration:
-            step = 1 if current_note['pitch'] > prev_note['pitch'] else -1
-            passing_pitch_candidate = prev_note['pitch'] + step
-            passing_pitch = snap_to_scale(passing_pitch_candidate, scale)
+            # 条件: 1. 音程が3度以上離れている 2. 現在の音符の長さが4分音符以上
+            if abs(next_note['pitch'] - current_note['pitch']) >= 3 and current_note['duration'] >= min_duration_for_passing_note:
+                # 1. 現在の音符の長さを8分音符分短くする
+                current_note['duration'] -= passing_note_duration
 
-            passing_note_time = prev_note['time'] + prev_note['duration']
-            new_measure_data.append({'pitch': passing_pitch, 'time': passing_note_time, 'duration': passing_note_duration})
+                # 2. 経過音を生成して追加する
+                step = 1 if next_note['pitch'] > current_note['pitch'] else -1
+                passing_pitch_candidate = current_note['pitch'] + step
+                passing_pitch = snap_to_scale(passing_pitch_candidate, scale)
 
-        new_measure_data.append(current_note.copy())
+                passing_note_time = current_note['time'] + current_note['duration']
+                new_measure_data.append({'pitch': passing_pitch, 'time': passing_note_time, 'duration': passing_note_duration})
 
     return new_measure_data
 
