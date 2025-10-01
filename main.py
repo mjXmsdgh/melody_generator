@@ -2,6 +2,7 @@ from strategies import strategy_chord_progression
 from midi_utils import create_midi_file
 from music_theory import SCALES, CHORDS, snap_to_chord
 import config
+from transformations import transform_add_passing_notes
 
 # このファイルがプログラムの実行起点となります。
 # 今後、他のファイルは直接実行せず、この main.py を実行してください。
@@ -50,7 +51,7 @@ def generate_and_save_melody(
         for transform_func in filter_chain:
             processed_data = transform_func(processed_data, key, scale, ticks_per_beat)
 
-        # 3b. コード進行に合わせて音を補正 (ハーモニー・フィルタ)
+        # 3b. まず、コード進行に合わせて音を補正 (ハーモニー・フィルタ)
         current_chord_name = chord_progression[i]
         chord_notes = CHORDS.get(current_chord_name)
         chain_names = ' -> '.join([f.__name__ for f in filter_chain])
@@ -59,7 +60,10 @@ def generate_and_save_melody(
             for note in processed_data:
                 note['pitch'] = snap_to_chord(note['pitch'], chord_notes)
 
-        # 3c. 全体のメロディーに結合
+        # 3c. ハーモニーが確定した後で、音の間に経過音を追加する
+        processed_data = transform_add_passing_notes(processed_data, key, scale, ticks_per_beat)
+
+        # 3d. 全体のメロディーに結合
         for note in processed_data:
             note['time'] += current_total_time
             full_melody_data.append(note)
