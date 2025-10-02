@@ -1,3 +1,5 @@
+import accompaniment
+
 # --- メロディー生成に関する設定 ---
 
 # 1拍あたりのTick数。分解能を表します。480が一般的です。
@@ -35,6 +37,10 @@ INPUT_CHORD_PROGRESSION = [
 
 # 伴奏コードをMIDIファイルに含めるか
 PLAY_CHORDS = True
+
+# 使用する伴奏の生成スタイルを選択
+# accompaniment.generate_block_chords や accompaniment.generate_arpeggio_up などを指定
+ACCOMPANIMENT_GENERATOR = accompaniment.generate_arpeggio_up
 
 # --- 出力設定 ---
 OUTPUT_PATH = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"

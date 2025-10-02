@@ -14,8 +14,8 @@ def generate_and_save_melody(
     num_measures,
     ticks_per_beat,
     output_path,
-    play_chords,
-    beats_per_measure
+    beats_per_measure,
+    accompaniment_generator=None
 ):
     """
     設定に基づき、Arrangerから構成レシピを取得し、Processorとしてメロディーを生成・保存します。
@@ -26,8 +26,9 @@ def generate_and_save_melody(
     if len(chord_progression) < num_measures:
         raise ValueError("コード進行の長さが、生成する小節数より短いです。")
 
-    # --- Processor (処理エンジン) の実装 ---
+    ticks_per_measure = ticks_per_beat * beats_per_measure
 
+    # --- Processor (処理エンジン) の実装 ---
     # 1. Arrangerを呼び出し、曲の構成レシピを取得
     composition = strategy_chord_progression(num_measures=num_measures)
 
@@ -41,7 +42,6 @@ def generate_and_save_melody(
     # 3. 各小節について、レシピに従いメロディーを生成
     full_melody_data = []
     current_total_time = 0
-    ticks_per_measure = ticks_per_beat * beats_per_measure
     scale = SCALES[key]
 
     print("今回のメロディー構成:")
@@ -69,13 +69,27 @@ def generate_and_save_melody(
             full_melody_data.append(note)
         current_total_time += ticks_per_measure
 
-    # 4. 生成されたメロディーをMIDIファイルに出力
-    # (midi_utils側で時間順ソートは行われる)
+    # 4. 伴奏データを生成
+    accompaniment_data = []
+    if accompaniment_generator:
+        print("\n--- 伴奏を生成します ---")
+        print(f"使用する伴奏スタイル: {accompaniment_generator.__name__}")
+        current_accomp_time = 0
+        for chord_name in chord_progression:
+            # 1小節分の伴奏パターンを生成
+            measure_accomp_notes = accompaniment_generator(chord_name, ticks_per_measure, key, scale)
+            # 全体の時間にオフセットを加えて結合
+            for note in measure_accomp_notes:
+                note['time'] += current_accomp_time
+                accompaniment_data.append(note)
+            current_accomp_time += ticks_per_measure
+
+    # 5. 生成されたメロディーと伴奏をMIDIファイルに出力
     create_midi_file(
         melody_data=full_melody_data,
         output_filename=output_path,
-        chord_progression=chord_progression if play_chords else None,
-        beats_per_measure=beats_per_measure
+        ticks_per_beat=ticks_per_beat,
+        accompaniment_data=accompaniment_data
     )
     print(f"\nMIDIファイル '{output_path}' を生成しました。")
 
@@ -88,8 +102,8 @@ def main():
         num_measures=config.NUMBER_OF_MEASURES,
         ticks_per_beat=config.TICKS_PER_BEAT,
         output_path=config.OUTPUT_PATH,
-        play_chords=config.PLAY_CHORDS,
         beats_per_measure=config.BEATS_PER_MEASURE,
+        accompaniment_generator=config.ACCOMPANIMENT_GENERATOR if config.PLAY_CHORDS else None
     )
 
 
