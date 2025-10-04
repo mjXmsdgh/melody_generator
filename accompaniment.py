@@ -102,3 +102,16 @@ def generate_alberti_bass(chord_name, ticks_per_measure, key, scale):
                 'duration': ticks_per_16th
             })
     return notes_data
+
+# --- 伴奏スタイルのカタログ ---
+
+# 利用可能な伴奏生成関数を、名前（文字列）と関数オブジェクトの辞書としてマッピングします。
+# これにより、設定ファイルから文字列でスタイルを指定できるようになります。
+ACCOMPANIMENT_MAP = {
+    'block_chords': generate_block_chords,
+    'arpeggio_up': generate_arpeggio_up,
+    'alberti_bass': generate_alberti_bass,
+}
+
+# ランダム選択のために、利用可能なスタイル名のリストも用意します。
+ACCOMPANIMENT_STYLES = list(ACCOMPANIMENT_MAP.keys())

@@ -39,8 +39,9 @@ INPUT_CHORD_PROGRESSION = [
 PLAY_CHORDS = True
 
 # 使用する伴奏の生成スタイルを選択
-# accompaniment.generate_block_chords や accompaniment.generate_arpeggio_up などを指定
-ACCOMPANIMENT_GENERATOR = accompaniment.generate_arpeggio_up
+# 'random': 利用可能なスタイルからランダムに選択
+# 'block_chords', 'arpeggio_up', 'alberti_bass': 特定のスタイルを指定
+ACCOMPANIMENT_GENERATOR = 'random'
 
 # --- 出力設定 ---
 OUTPUT_PATH = "C:\\Users\\masuda\\Desktop\\DTM\\strategy_random_output.mid"

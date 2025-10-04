@@ -1,8 +1,10 @@
+import random
 from strategies import strategy_chord_progression
 from midi_utils import create_midi_file
 from music_theory import SCALES, CHORDS, snap_to_chord
 import config
 from transformations import transform_add_passing_notes
+from accompaniment import ACCOMPANIMENT_MAP, ACCOMPANIMENT_STYLES
 
 # このファイルがプログラムの実行起点となります。
 # 今後、他のファイルは直接実行せず、この main.py を実行してください。
@@ -71,13 +73,25 @@ def generate_and_save_melody(
 
     # 4. 伴奏データを生成
     accompaniment_data = []
-    if accompaniment_generator:
+    if config.PLAY_CHORDS and accompaniment_generator:
         print("\n--- 伴奏を生成します ---")
-        print(f"使用する伴奏スタイル: {accompaniment_generator.__name__}")
+        
+        # --- 伴奏決定ロジック ---
+        selected_style_name = accompaniment_generator
+        if selected_style_name == 'random':
+            selected_style_name = random.choice(ACCOMPANIMENT_STYLES)
+        
+        actual_generator = ACCOMPANIMENT_MAP.get(selected_style_name)
+
+        if not actual_generator:
+            raise ValueError(f"伴奏スタイル '{selected_style_name}' は定義されていません。利用可能なスタイル: {ACCOMPANIMENT_STYLES}")
+
+        print(f"使用する伴奏スタイル: {selected_style_name}")
+        
         current_accomp_time = 0
         for chord_name in chord_progression:
             # 1小節分の伴奏パターンを生成
-            measure_accomp_notes = accompaniment_generator(chord_name, ticks_per_measure, key, scale)
+            measure_accomp_notes = actual_generator(chord_name, ticks_per_measure, key, scale)
             # 全体の時間にオフセットを加えて結合
             for note in measure_accomp_notes:
                 note['time'] += current_accomp_time
@@ -103,7 +117,7 @@ def main():
         ticks_per_beat=config.TICKS_PER_BEAT,
         output_path=config.OUTPUT_PATH,
         beats_per_measure=config.BEATS_PER_MEASURE,
-        accompaniment_generator=config.ACCOMPANIMENT_GENERATOR if config.PLAY_CHORDS else None
+        accompaniment_generator=config.ACCOMPANIMENT_GENERATOR
     )
 
 
