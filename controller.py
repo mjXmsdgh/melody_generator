@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 import io
-import contextlib
+import logging
 
 import config
-from generator import MelodyGenerator
+from generator import MelodyGenerator, MelodyConfig
 # データ変換ユーティリティをインポート
 from gui_utils import parse_chord_progression, parse_motif, ParsingError
 
@@ -45,30 +45,39 @@ class AppController:
             num_measures = int(settings_data['measures_var'])
 
             # 2. MelodyGeneratorに渡すconfig辞書を構築
-            app_config = {
+            app_config_dict = {
                 'motif_notes': motif_notes,
                 'key': settings_data['key_var'],
                 'chord_progression': chord_progression,
                 'num_measures': num_measures,
                 'ticks_per_beat': config.TICKS_PER_BEAT,
                 'beats_per_measure': config.BEATS_PER_MEASURE,
-                'play_chords': config.PLAY_CHORDS,
+                'play_chords': config.PLAY_CHORDS, # config.pyから取得
                 'accompaniment_generator': settings_data['accomp_var'],
             }
             self.view.log("設定の読み込み完了。\n")
 
-            # 3. MelodyGeneratorのインスタンスを生成し、実行
-            self.view.log("\n2. MelodyGeneratorを初期化...\n")
-            generator = MelodyGenerator(config=app_config)
-
-            self.view.log("3. メロディーと伴奏を生成中...\n")
-            with io.StringIO() as log_capture, contextlib.redirect_stdout(log_capture):
+            # 3. ロギングのセットアップ
+            # io.StringIOをハンドラとして使用し、ログをメモリ上にキャプチャする
+            log_capture = io.StringIO()
+            # GUIにログを流すためのカスタムハンドラ
+            handler = logging.StreamHandler(log_capture)
+            # ログのフォーマットは不要（メッセージのみ表示するため）
+            handler.setFormatter(logging.Formatter('%(message)s'))
+            
+            logger = logging.getLogger('MelodyGeneratorLogger')
+            logger.handlers = [handler] # 既存のハンドラをクリアして設定
+            logger.setLevel(logging.INFO)
+            
+            # 4. MelodyGeneratorのインスタンスを生成し、実行
+            self.view.log("\n2. MelodyGeneratorを初期化し、メロディーと伴奏を生成中...\n")
+            melody_config = MelodyConfig(**app_config_dict)
+            generator = MelodyGenerator(config=melody_config, logger=logger)
+            try:
                 generator.generate()
-                self.view.log(log_capture.getvalue())
-
-            self.view.log("\n4. MIDIファイルに保存中...\n")
-            with io.StringIO() as log_capture, contextlib.redirect_stdout(log_capture):
                 generator.save_midi(output_path)
+            finally:
+                # generatorからのログをGUIに表示
                 self.view.log(log_capture.getvalue())
 
             self.view.log(f"\n>>> 完了: MIDIファイルを '{output_path}' に保存しました。\n")
