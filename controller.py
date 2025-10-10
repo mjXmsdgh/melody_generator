@@ -4,7 +4,8 @@ import io
 import logging
 
 import config
-from generator import MelodyGenerator, MelodyConfig
+from generator import MelodyGenerator
+from melody_config import MelodyConfig # MelodyConfigを新しいファイルからインポート
 # データ変換ユーティリティをインポート
 from gui_utils import parse_chord_progression, parse_motif, ParsingError
 

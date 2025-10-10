@@ -6,7 +6,7 @@ import contextlib
 
 # 既存のファイルから設定値や選択肢をインポート
 import config
-from generator import MelodyGenerator
+from generator import MelodyGenerator # このファイルはMelodyGeneratorのみ使用するため変更なし
 # UIコンポーネントをインポート
 from settings_panel import SettingsPanel
 from action_panel import ActionPanel
