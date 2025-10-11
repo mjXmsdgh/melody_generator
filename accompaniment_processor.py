@@ -37,6 +37,7 @@ class AccompanimentProcessor:
 
         self.logger.info(f"使用する伴奏スタイル: {selected_style_name}")
 
+        # コード進行をループし、各小節の伴奏を生成して結合する
         full_accompaniment_data = []
         current_accomp_time = 0
         for chord_name in config.chord_progression:
