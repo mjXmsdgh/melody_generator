@@ -2,8 +2,8 @@ import random
 import logging
 from typing import List
 
-from melody_config import MelodyConfig
-from accompaniment import ACCOMPANIMENT_MAP, ACCOMPANIMENT_STYLES
+from .melody_config import MelodyConfig
+from .accompaniment import ACCOMPANIMENT_MAP, ACCOMPANIMENT_STYLES
 
 class AccompanimentProcessor:
     """伴奏生成の具体的な処理を担当するクラス。"""

@@ -1,4 +1,4 @@
-import accompaniment
+from .core import accompaniment
 
 # --- メロディー生成に関する設定 ---
 

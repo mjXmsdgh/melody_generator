@@ -5,12 +5,12 @@ import io
 import contextlib
 
 # 既存のファイルから設定値や選択肢をインポート
-import config
-from generator import MelodyGenerator # このファイルはMelodyGeneratorのみ使用するため変更なし
+from melody_generator import config
+from melody_generator.core.generator import MelodyGenerator # このファイルはMelodyGeneratorのみ使用するため変更なし
 # UIコンポーネントをインポート
-from settings_panel import SettingsPanel
-from action_panel import ActionPanel
-from controller import AppController
+from melody_generator.gui.settings_panel import SettingsPanel
+from melody_generator.gui.action_panel import ActionPanel
+from melody_generator.gui.controller import AppController
 
 class MelodyGeneratorApp(tk.Tk):
     """メロディー生成ツールのGUIアプリケーション"""

@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 
 # 既存のファイルから設定値や選択肢をインポート
-import config
-from music_theory import SCALES
-from accompaniment import ACCOMPANIMENT_STYLES
+from melody_generator import config
+from melody_generator.core.music_theory import SCALES
+from melody_generator.core.accompaniment import ACCOMPANIMENT_STYLES
 
 class SettingsPanel(ttk.LabelFrame):
     """設定関連のウィジェットをまとめたパネル"""

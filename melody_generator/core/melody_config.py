@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 
-from music_theory import SCALES
+from .music_theory import SCALES
 
 @dataclass
 class MelodyConfig:

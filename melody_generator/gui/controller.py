@@ -3,11 +3,11 @@ from tkinter import messagebox
 import io
 import logging
 
-import config
-from generator import MelodyGenerator
-from melody_config import MelodyConfig # MelodyConfigを新しいファイルからインポート
+from melody_generator import config
+from melody_generator.core.generator import MelodyGenerator
+from melody_generator.core.melody_config import MelodyConfig # MelodyConfigを新しいファイルからインポート
 # データ変換ユーティリティをインポート
-from gui_utils import parse_chord_progression, parse_motif, ParsingError
+from melody_generator.gui.gui_utils import parse_chord_progression, parse_motif, ParsingError
 
 class AppController:
     """

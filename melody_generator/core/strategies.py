@@ -2,8 +2,8 @@
 変換操作を組み合わせてメロディー全体の構成を作る「生成戦略」のカタログ。
 """
 import random
-from music_theory import SCALES, CHORDS, snap_to_chord
-from transformations import (
+from .music_theory import SCALES, CHORDS, snap_to_chord
+from .transformations import (
     transform_identity, transform_retrograde, transform_ending, transform_rhythm_dotted, transform_add_passing_notes,
     transform_rhythm_triplet, transform_slight_variation,
     transform_rhythm_staccato, transform_rhythm_double_time, transform_syncopation_push,

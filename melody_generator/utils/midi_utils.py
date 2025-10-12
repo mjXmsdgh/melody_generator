@@ -1,5 +1,5 @@
 import mido
-from music_theory import CHORDS
+from melody_generator.core.music_theory import CHORDS
 
 def _create_track_from_notes(notes_data, velocity=64):
     """

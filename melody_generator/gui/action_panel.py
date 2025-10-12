@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-import config
+from melody_generator import config
 
 class ActionPanel(ttk.LabelFrame):
     """操作ボタンやログ表示エリアをまとめたパネル"""

@@ -1,4 +1,4 @@
-from music_theory import CHORDS
+from .music_theory import CHORDS
 
 def generate_block_chords(chord_name, ticks_per_measure, key, scale):
     """

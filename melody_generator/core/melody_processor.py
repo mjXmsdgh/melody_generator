@@ -1,10 +1,10 @@
 import logging
 from typing import List
 
-from melody_config import MelodyConfig
-from strategies import strategy_chord_progression
-from music_theory import SCALES, CHORDS, snap_to_chord
-from transformations import transform_add_passing_notes
+from .melody_config import MelodyConfig
+from .strategies import strategy_chord_progression
+from .music_theory import SCALES, CHORDS, snap_to_chord
+from .transformations import transform_add_passing_notes
 
 class MelodyProcessor:
     """メロディー生成の具体的な処理を担当するクラス。"""

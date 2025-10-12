@@ -1,7 +1,7 @@
 """
 メロディーを1小節単位で加工する「変換操作」のカタログ。
 """
-from music_theory import snap_to_scale
+from .music_theory import snap_to_scale
 import random
 
 # 各変換操作（フィルタ）は、1小節分のメロディーデータを受け取り、

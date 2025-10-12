@@ -1,13 +1,13 @@
 import logging
 
 # 新しく作成したファイルからクラスをインポート
-from melody_config import MelodyConfig
-from melody_processor import MelodyProcessor
-from accompaniment_processor import AccompanimentProcessor
+from melody_generator.core.melody_config import MelodyConfig
+from melody_generator.core.melody_processor import MelodyProcessor
+from melody_generator.core.accompaniment_processor import AccompanimentProcessor
 
 # 既存のユーティリティと定義をインポート
-from music_theory import SCALES
-from midi_utils import create_midi_file
+from melody_generator.core.music_theory import SCALES
+from melody_generator.utils.midi_utils import create_midi_file
 
 class MelodyGenerator:
     """
